@@ -1,6 +1,8 @@
 # MentorSpace
 A real-time 1-on-1 technical mentorship platform with collaborative code editing, WebRTC video calling, and live session chat.
 
+Live Link- https://mentor-space-platform-5ymgtmt1g-vinayp9399s-projects.vercel.app/
+
 ## Features
 - **Authentication** — JWT-based login and registration with Mentor / Student roles
 - **Session Management** — Create, schedule, join and end 1-on-1 sessions via invite token

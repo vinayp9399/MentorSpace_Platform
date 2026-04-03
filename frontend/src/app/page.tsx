@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore, useSessionStore } from '@/store'
 import { sessionsApi, authApi } from '@/lib/api'
 import { SessionRoom } from '@/components/session/SessionRoom'
-import type { Session } from '@/types'
+import type { Session, Language } from '@/types'
 
 // ─── AUTH SCREEN (RESTORED CSS) ──────────────────────────────────────────────
 function AuthScreen() {
@@ -18,9 +18,9 @@ function AuthScreen() {
   const [error, setError] = useState('')
 
   const handleSubmit = async () => {
-    if (!email || !password || (mode === 'register' && !name)) { 
-      setError('Please fill all fields'); 
-      return 
+    if (!email || !password || (mode === 'register' && !name)) {
+      setError('Please fill all fields')
+      return
     }
     setLoading(true); setError('')
     try {
@@ -39,8 +39,8 @@ function AuthScreen() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f0f1a' }}>
       <div style={{ width: 420, background: '#1a1a2e', border: '1px solid #2a2a3a', borderRadius: 16, padding: 32, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <h2 style={{ color: '#fff', fontSize: 28, fontWeight: 800, fontFamily: 'Syne' }}>MentorSpace</h2>
-            <p style={{ color: '#888', fontSize: 14 }}>{mode === 'login' ? 'Welcome back' : 'Create your account'}</p>
+          <h2 style={{ color: '#fff', fontSize: 28, fontWeight: 800, fontFamily: 'Syne' }}>MentorSpace</h2>
+          <p style={{ color: '#888', fontSize: 14 }}>{mode === 'login' ? 'Welcome back' : 'Create your account'}</p>
         </div>
 
         <div style={{ display: 'flex', background: '#0f0f1a', borderRadius: 8, padding: 3, marginBottom: 24, border: '1px solid #2a2a3a' }}>
@@ -54,12 +54,12 @@ function AuthScreen() {
           )}
           <input className="input-field" type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
           <input className="input-field" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
-          
+
           {mode === 'register' && (
-             <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => setRole('student')} style={{ flex: 1, padding: 12, background: role === 'student' ? 'rgba(124,111,255,0.2)' : 'transparent', border: role === 'student' ? '1px solid #7c6fff' : '1px solid #333', color: '#fff', borderRadius: 10, cursor: 'pointer' }}>Student</button>
-                <button onClick={() => setRole('mentor')} style={{ flex: 1, padding: 12, background: role === 'mentor' ? 'rgba(124,111,255,0.2)' : 'transparent', border: role === 'mentor' ? '1px solid #7c6fff' : '1px solid #333', color: '#fff', borderRadius: 10, cursor: 'pointer' }}>Mentor</button>
-             </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setRole('student')} style={{ flex: 1, padding: 12, background: role === 'student' ? 'rgba(124,111,255,0.2)' : 'transparent', border: role === 'student' ? '1px solid #7c6fff' : '1px solid #333', color: '#fff', borderRadius: 10, cursor: 'pointer' }}>Student</button>
+              <button onClick={() => setRole('mentor')} style={{ flex: 1, padding: 12, background: role === 'mentor' ? 'rgba(124,111,255,0.2)' : 'transparent', border: role === 'mentor' ? '1px solid #7c6fff' : '1px solid #333', color: '#fff', borderRadius: 10, cursor: 'pointer' }}>Mentor</button>
+            </div>
           )}
 
           {error && <p style={{ color: '#ff5f7e', fontSize: 13, textAlign: 'center' }}>{error}</p>}
@@ -75,26 +75,24 @@ function AuthScreen() {
 // ─── DASHBOARD VIEW (RESTORED CSS) ───────────────────────────────────────────
 function DashboardView({ sessions, user, onOpen }: { sessions: Session[], user: any, onOpen: (s: Session) => void }) {
   const [showCreate, setShowCreate] = useState(false)
-  const [title, setTitle] = useState("")
-  const [lang, setLang] = useState("javascript")
+  const [title, setTitle] = useState('')
+  const [lang, setLang] = useState<Language>('javascript') 
   const { addSession } = useSessionStore()
 
   const handleCreate = async () => {
-    if (!title) return;
+    if (!title) return
     try {
       const newSession = await sessionsApi.create({
         title,
-        language: lang,
+        language: lang,                          
         scheduled_at: new Date().toISOString(),
-        mentor_id: user.id,
-        student_id: user.id, 
-        status: 'scheduled'
-      });
-      addSession(newSession);
-      setShowCreate(false);
-      setTitle("");
+        duration_minutes: '60',                
+      })
+      addSession(newSession)
+      setShowCreate(false)
+      setTitle('')
     } catch (error) {
-      console.error("Failed to create session", error);
+      console.error('Failed to create session', error)
     }
   }
 
@@ -112,7 +110,12 @@ function DashboardView({ sessions, user, onOpen }: { sessions: Session[], user: 
           <h3 style={{ color: '#fff', marginBottom: 20 }}>Schedule New Session</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <input className="input-field" placeholder="Session Title" value={title} onChange={e => setTitle(e.target.value)} />
-            <select className="input-field" value={lang} onChange={e => setLang(e.target.value)} style={{ background: '#0f0f1a', color: '#fff' }}>
+            <select
+              className="input-field"
+              value={lang}
+              onChange={e => setLang(e.target.value as Language)}  // FIX: cast on change handler
+              style={{ background: '#0f0f1a', color: '#fff' }}
+            >
               <option value="javascript">JavaScript</option>
               <option value="python">Python</option>
               <option value="typescript">TypeScript</option>
@@ -173,7 +176,9 @@ function AppShell() {
         {view === 'dashboard' ? (
           <DashboardView sessions={sessions} user={user} onOpen={(s) => { setActiveSession(s); setView('room') }} />
         ) : (
-          activeSession ? <SessionRoom session={activeSession} currentUser={user} onEnd={() => setView('dashboard')} /> : <div style={{ padding: 60, color: '#444', textAlign: 'center' }}>No active session selected.</div>
+          activeSession
+            ? <SessionRoom session={activeSession} currentUser={user} onEnd={() => setView('dashboard')} />
+            : <div style={{ padding: 60, color: '#444', textAlign: 'center' }}>No active session selected.</div>
         )}
       </div>
     </div>

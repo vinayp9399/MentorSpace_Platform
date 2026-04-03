@@ -14,19 +14,19 @@ export function ChatPanel({ messages, onSend, currentUserId }: ChatPanelProps) {
   const [input, setInput] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  // FIX: Deduplicate messages by ID to prevent UI glitches if the data source provides duplicates
+  // Deduplicate messages by ID to prevent UI glitches if the data source provides duplicates
   const uniqueMessages = useMemo(() => {
-    const seen = new Set();
+    const seen = new Set()
     return messages.filter(msg => {
-      const duplicate = seen.has(msg.id);
-      seen.add(msg.id);
-      return !duplicate;
-    });
-  }, [messages]);
+      const duplicate = seen.has(msg.id)
+      seen.add(msg.id)
+      return !duplicate
+    })
+  }, [messages])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [uniqueMessages]) // Use uniqueMessages here
+  }, [uniqueMessages])
 
   const handleSend = () => {
     if (!input.trim()) return
@@ -40,13 +40,16 @@ export function ChatPanel({ messages, onSend, currentUserId }: ChatPanelProps) {
 
   const isSelf = (msg: Message) => msg.sender_id === currentUserId || msg.is_self
 
+  // Derive colour from role — falls back to student colour if role is undefined
+  const nameColor = (msg: Message) => msg.role === 'mentor' ? '#7c6fff' : '#4fffb0'
+
   const s = {
-    wrapper: { display: 'flex', flexDirection: 'column' as const, height: '100%', background: '#12121a' },
-    header: { padding: '14px 16px', borderBottom: '1px solid #2a2a3a', display: 'flex', alignItems: 'center', gap: 8 },
+    wrapper:  { display: 'flex', flexDirection: 'column' as const, height: '100%', background: '#12121a' },
+    header:   { padding: '14px 16px', borderBottom: '1px solid #2a2a3a', display: 'flex', alignItems: 'center', gap: 8 },
     messages: { flex: 1, overflowY: 'auto' as const, padding: '12px 14px', display: 'flex', flexDirection: 'column' as const, gap: 10 },
     inputRow: { padding: '12px', borderTop: '1px solid #2a2a3a', display: 'flex', gap: 8 },
-    input: { flex: 1, background: '#0a0a0f', border: '1px solid #2a2a3a', color: '#e8e8f0', padding: '9px 12px', borderRadius: 8, fontFamily: 'Syne, sans-serif', fontSize: 13, outline: 'none' },
-    sendBtn: { width: 38, height: 38, borderRadius: 8, background: '#7c6fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+    input:    { flex: 1, background: '#0a0a0f', border: '1px solid #2a2a3a', color: '#e8e8f0', padding: '9px 12px', borderRadius: 8, fontFamily: 'Syne, sans-serif', fontSize: 13, outline: 'none' },
+    sendBtn:  { width: 38, height: 38, borderRadius: 8, background: '#7c6fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   }
 
   return (
@@ -58,7 +61,7 @@ export function ChatPanel({ messages, onSend, currentUserId }: ChatPanelProps) {
       </div>
 
       <div style={s.messages}>
-        {uniqueMessages.map((msg) => { // Render deduplicated list
+        {uniqueMessages.map((msg) => {
           const self = isSelf(msg)
           if (msg.message_type === 'system') {
             return (
@@ -70,11 +73,11 @@ export function ChatPanel({ messages, onSend, currentUserId }: ChatPanelProps) {
           return (
             <div key={msg.id} style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: self ? 'flex-end' : 'flex-start' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'Syne, sans-serif', color: msg.role === 'mentor' ? '#7c6fff' : '#4fffb0' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'Syne, sans-serif', color: nameColor(msg) }}>
                   {self ? 'You' : (msg.sender_name?.split(' ')[0] || 'User')}
                 </span>
                 <span style={{ fontSize: 10, color: '#44445a', fontFamily: 'Space Mono, monospace' }}>
-                  {/* {formatDistanceToNow(new Date(msg.timestamp), { addSuffix: true })} */}
+                  {formatDistanceToNow(new Date(msg.timestamp), { addSuffix: true })}
                 </span>
               </div>
               <div style={{
